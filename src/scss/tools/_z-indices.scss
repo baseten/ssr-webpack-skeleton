@@ -1,0 +1,21 @@
+$z-indices: (
+    aurora,
+    background,
+    content,
+    blueprint-object,
+    polaroid,
+    polaroid-fade,
+    burger-menu,
+    main-nav,
+    nav-scroll__container,
+    nav-scroll__body,
+    nav-elements,
+    overlay,
+    overlay__background,
+    overlay__content,
+    cookie-message
+);
+
+@function z-index ( $name ) {
+    @return index( $z-indices, $name );
+}

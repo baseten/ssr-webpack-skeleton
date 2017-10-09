@@ -1,0 +1,182 @@
+@mixin child-expander ( $padding-size, $important: false ) {
+    $important: if( $important, ' !important', '' );
+    width: calc( 100% + #{$padding-size * 1px} ) + $important;
+}
+
+@mixin child-expander-margin ( $margin-left: false, $margin-right: false ) {
+    @if( $margin-left ) {
+        margin-left: px( $margin-left );
+    }
+
+    @if( $margin-right ) {
+        margin-right: px( $margin-right );
+    }
+}
+
+@mixin font ( $family, $weight, $size, $line-height: false, $style: false ) {
+    // font shorthand sucks, it doesn't inherit line-height and rems break in IE10
+    font-family: $family;
+    font-weight: $weight;
+
+    @if $style {
+        font-style: $style;
+    }
+
+    font-size: rem-or-existing-unit( $size );
+
+    @if $line-height {
+        line-height: line-height( $line-height, $size );
+    }
+}
+
+@mixin link-color ( $base-color, $hover-color: $base-color, $active-color: $base-color ) {
+    color: $base-color;
+
+    &:visited {
+        color: $base-color;
+    }
+
+    .desktop &:hover {
+        color: $hover-color
+    }
+
+    &:active, &.active, .active > & {
+        color: $active-color;
+    }
+}
+
+@mixin clearfix {
+    &::before,
+    &::after {
+        display: table;
+        content: ' ';
+
+    }
+
+    &::after {
+        clear: both;
+    }
+}
+
+@mixin placeholder-color ( $color ) {
+    &::-webkit-input-placeholder { /* WebKit, Blink, Edge */
+        color: $color;
+        font-size: rem(16);
+        font-weight: 300;
+    }
+    &::-moz-placeholder { /* Mozilla Firefox 19+ */
+        color: $color;
+        opacity:  1;
+        font-size: rem(16);
+        font-weight: 300;
+    }
+    &:-ms-input-placeholder { /* Internet Explorer 10-11 */
+        color: $color;
+        font-size: rem(16);
+        font-weight: 300;
+    }
+}
+
+@mixin break-word () {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+
+    -ms-word-break: break-all;
+    word-break: break-word;
+
+    -ms-hyphens: auto;
+    -moz-hyphens: auto;
+    -webkit-hyphens: auto;
+    hyphens: auto;
+}
+
+@mixin tracking-to-letter-spacing ( $tracking ) {
+    letter-spacing: ( $tracking / 1000 ) * 1em;
+}
+
+@mixin font-size-line-height ( $font-size, $line-height ) {
+    font-size: rem( $font-size );
+    line-height: line-height( $line-height, $font-size );
+}
+
+@mixin triangle ($size, $color, $direction) {
+    height: 0;
+    width: 0;
+
+    @if ($direction == up) or ($direction == down) or ($direction == right) or ($direction == left) {
+        border-color: transparent;
+        border-style: solid;
+        border-width: $size / 2;
+
+        @if $direction == up {
+            border-bottom-color: $color;
+        }
+        @else if $direction == right {
+            border-left-color: $color;
+        }
+        @else if $direction == down {
+            border-top-color: $color;
+        }
+        @else if $direction == left {
+            border-right-color: $color;
+        }
+    }
+
+    @else if ($direction == up-right) or ($direction == up-left) {
+        border-top: $size solid $color;
+
+        @if $direction == up-right {
+            border-left: $size solid transparent;
+        }
+        @else if $direction == up-left {
+            border-right: $size solid transparent;
+        }
+    }
+
+    @else if ($direction == down-right) or ($direction == down-left) {
+        border-bottom: $size solid $color;
+
+        @if $direction == down-right {
+            border-left: $size solid transparent;
+        }
+        @else if $direction == down-left {
+            border-right: $size solid transparent;
+        }
+    }
+}
+
+// Rotate
+@mixin rotate ($deg) {
+    transform: rotate(#{$deg}deg) ;
+}
+
+// Scale
+@mixin scale($scale) {
+    transform: scale($scale);
+}
+
+/// Makes an element visually hidden, but still accessible to keyboards and assistive devices.
+/// @link http://snook.ca/archives/html_and_css/hiding-content-for-accessibility Hiding Content for Accessibility
+/// @link http://hugogiraudel.com/2016/10/13/css-hide-and-seek/
+@mixin element-invisible {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    clip-path: inset(50%);
+    border: 0;
+}
+
+/// Reverses the CSS output created by the `element-invisible()` mixin.
+@mixin element-invisible-off {
+    position: static !important;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+    clip-path: none;
+}

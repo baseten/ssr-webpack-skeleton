@@ -1,0 +1,27 @@
+.text-align-center {
+    text-align: center !important;
+}
+
+.text-align-right {
+    text-align: right !important;
+}
+
+.text-align-left {
+    text-align: left !important;
+}
+
+@each $size in $breakpoint-classes {
+    @include breakpoint( $size ) {
+        #{$size}-text-center {
+            text-align: center !important;
+        }
+
+        #{$size}-text-right {
+            text-align: right !important;
+        }
+
+        #{$size}-text-left {
+            text-align: left !important;
+        }
+    }
+}

@@ -1,0 +1,137 @@
+$grid-columns: 12 !default;
+$grid-gutter: 30 !default;
+$grid-gutters: (
+    small: $grid-gutter
+) !default;
+
+@function map-get-matching-breakpoint ( $map, $size ) {
+    $breakpoint: if( map-has-key( $map, $size ), map-get( $map, $size ), null );
+
+    @if $breakpoint != null {
+        @return $breakpoint;
+    }
+
+    $i: index( $breakpoint-classes, $size );
+
+    @if $i == null {
+        @error $size + 'not in breakpoint classes';
+    }
+
+    @while $breakpoint == null and $i > 1 {
+        $i: $i - 1;
+        $size: nth( $breakpoint-classes, $i );
+        $breakpoint: if( map-has-key( $map, $size ), map-get( $map, $size ), null );
+    }
+
+    @return $breakpoint;
+}
+
+@mixin grid-gutter ( $size ) {
+    $gutter: map-get-matching-breakpoint( $grid-gutters, $size );
+
+    @if $gutter {
+        padding-left: rem( $gutter / 2 );
+        padding-right: rem( $gutter / 2 );
+    }
+}
+
+@mixin grid-gutters () {
+    @each $size, $gutter in $grid-gutters {
+        @include breakpoint( $size ) {
+            @include grid-gutter( $size );
+        }
+    }
+}
+
+.row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: stretch;
+    align-content: flex-start;
+
+    @include grid-gutters();
+
+    @each $size in $breakpoint-classes {
+        $collapse-class: if( $size == small, collapse, #{$size}-collapse );
+        $uncollapse-class: if( $size == small, uncollapse, #{$size}-uncollapse );
+
+        @include breakpoint( $size ) {
+            &.#{$collapse-class} {
+                padding-left: 0;
+                padding-right: 0;
+
+                & > .column {
+                    padding-left: 0;
+                    padding-right: 0;
+                }
+            }
+
+            &.#{$uncollapse-class} {
+                @include grid-gutter( $size );
+
+                & > .column {
+                    @include grid-gutter( $size );
+                }
+            }
+        }
+    }
+}
+
+.column {
+    position: relative;
+    flex: 0 0 auto;
+    width: 100%;
+
+    @include grid-gutters();
+
+    &.-flex {
+        display: flex;
+    }
+
+    &.-grow-1 {
+        flex-grow: 1;
+    }
+
+    &.-shrink {
+        flex-shrink: 1;
+    }
+
+    &.-flex-first {
+        order: -1;
+    }
+
+    &.-flex-unordered {
+        order: 0;
+    }
+
+    &.-flex-last {
+        order: 1;
+    }
+}
+
+@each $column-size in $breakpoint-classes {
+    @include breakpoint( $column-size ) {
+
+        .#{$column-size}-order-default {
+            order: 0;
+        }
+
+        @for $i from 0 through $grid-columns {
+            $width: percentage( $i / $grid-columns );
+
+            .#{$column-size}-#{$i} {
+                width: $width;
+            }
+
+            .offset-#{$column-size}-#{$i} {
+                margin-left: $width;
+            }
+
+            .#{$column-size}-order-#{$i} {
+                order: $i;
+            }
+        }
+    }
+}

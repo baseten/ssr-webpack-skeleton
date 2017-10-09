@@ -1,0 +1,245 @@
+$base-url: '' !default;
+
+// https://gist.github.com/lunelson/cff721c3ca3bd9c96177
+@function _str-last-index($string, $substr) {
+    $index: null;
+    $length: str-length($string);
+    @for $n from $length through 1 {
+        $index: str-index(str-slice($string, $n, $length), $substr);
+        @if $index { @return $index + $n - 1; }
+    }
+    @return $index;
+}
+
+@function add-suffix ( $path, $suffix ) {
+    $ext-index: _str-last-index( $path, '.' );
+    @return str-insert( $path, $suffix, $ext-index );
+}
+
+@function get-retina-path ( $normalPath, $retinaSuffix: '@2x' ) {
+    @return add-suffix( $normalPath, $retinaSuffix );
+}
+
+@function get-image-width ( $path ) {
+    $currentImageData: map-get( $imageData, $path );
+    @return map-get( $currentImageData, width );
+}
+
+@function get-image-height ( $path ) {
+    $currentImageData: map-get( $imageData, $path );
+    @return map-get( $currentImageData, height );
+}
+
+@function get-image-aspect ( $path ) {
+    $currentImageData: map-get( $imageData, $path );
+    $width: map-get( $currentImageData, width );
+    $height: map-get( $currentImageData, height );
+    @return $width / $height;
+}
+
+@mixin background-image ( $relativePath, $backgroundSize: 100%, $important: false ) {
+    $webPath: "/images/backgrounds/#{$relativePath}";
+    $serverPath: $base-url + $webPath;
+    $currentImageData: map-get( $imageData, $webPath );
+    $important: if( $important, !important, null );
+
+    background-image: url( $serverPath ) $important;
+
+    @if $backgroundSize == auto {
+        background-size: px( map-get( $currentImageData, width ) ) $important;
+    }
+    @else if type_of( $backgroundSize ) == number {
+        background-size: px-or-existing-unit( $backgroundSize ) $important;
+    }
+
+    @include breakpoint( retina ) {
+        background-image: url( get-retina-path( $serverPath ) ) $important;
+    }
+}
+
+@mixin border-image ( $relativePath, $backgroundSize: 100% ) {
+    $webPath: "/images/backgrounds/#{$relativePath}";
+    $serverPath: $base-url + $webPath;
+    $currentImageData: map-get( $imageData, $webPath );
+
+    border-image: url( $serverPath );
+
+    @include breakpoint( retina ) {
+        border-image: url( $serverPath );
+    }
+}
+
+@mixin background-image-dimensions ( $relativePath, $width: auto, $height: auto, $scale: 1, $center: false ) {
+    $webPath: "/images/backgrounds/#{$relativePath}";
+    $outputWidth: false;
+    $outputHeight: false;
+
+    @if $width == auto {
+        @if ( type_of( $height ) == number ) {
+            $aspect: get-image-aspect( $webPath );
+            $outputWidth: round( $height * $aspect );
+        }
+        @else {
+            $outputWidth: get-image-width( $webPath );
+        }
+    }
+    @else if type_of( $width ) == number {
+        $outputWidth: $width;
+    }
+
+    @if $height == auto {
+        @if ( type_of( $width ) == number ) {
+            $aspect: get-image-aspect( $webPath );
+            $outputHeight: round( $width / $aspect );
+        }
+        @else {
+            $outputHeight: get-image-height( $webPath );
+        }
+    }
+    @else if type_of( $height ) == number {
+        $outputHeight: $height;
+    }
+
+    @if $outputWidth {
+        width: px( round( $outputWidth * $scale ) );
+    }
+
+    @if $outputHeight {
+        height: px( round( $outputHeight * $scale ) );
+    }
+
+    @if $center {
+        $marginHorizontal: if( $outputWidth, round( -$outputWidth / 2 * $scale ), 0 );
+        $marginVertical: if( $outputHeight, round( -$outputHeight / 2 * $scale ), 0 );
+
+        margin: px( $marginVertical ) px( $marginHorizontal );
+    }
+}
+
+// $containerMaxWidth and $containerMaxHeight should be values at largest screen size to use as base for calculating percentages
+@mixin background-image-dimensions-fluid ( $relativePath, $containerMaxWidth, $containerMaxHeight: false, $center: false ) {
+    $webPath: "/images/backgrounds/#{$relativePath}";
+    $width: get-image-width( $webPath );
+    $height: get-image-height( $webPath );
+
+    width: percentage( $width / $containerMaxWidth );
+
+    @if $containerMaxHeight == false {
+        // padding-top aspect ratio hack
+        padding-top: percentage( $height / $containerMaxWidth );
+        height: 0;
+    }
+    @else {
+        height: percentage( $height / $containerMaxHeight );
+    }
+
+    @if $center {
+        $marginHorizontal: percentage( ( -$width / 2 ) / $containerMaxWidth );
+
+        // use $containerWidth as base value, this is not a typo!
+        // https://stackoverflow.com/questions/11003911/why-are-margin-padding-percentages-in-css-always-calculated-against-width
+        $marginVertical: percentage( ( -$height / 2 ) / $containerMaxWidth );
+        margin: $marginVertical $marginHorizontal;
+    }
+}
+
+@mixin background-image-aspect-ratio ( $relativePath, $percentageWidth ) {
+    $webPath: "/images/backgrounds/#{$relativePath}";
+    $width: get-image-width( $webPath );
+    $height: get-image-height( $webPath );
+
+    $heightAspect: $height / $width;
+
+    width: $percentageWidth;
+    height: 0;
+    // padding-top aspect ratio hack
+    padding-top: $percentageWidth * $heightAspect;
+}
+
+@mixin background-image-dimensions-ems ( $relativePath, $font-size, $center: false ) {
+    $webPath: "/images/backgrounds/#{$relativePath}";
+    $width: get-image-width( $webPath );
+    $height: get-image-height( $webPath );
+
+    width: em( $width, $font-size );
+    height: em( $height, $font-size );
+
+    @if $center {
+        $marginHorizontal: em( round( -$width / 2 ), $font-size );
+        $marginVertical: em( round( -$height / 2 ), $font-size );
+        margin: $marginVertical $marginHorizontal;
+    }
+}
+
+@mixin background-image-spacing ( $top, $right: $top, $bottom: $top, $left: $right, $scale: 1 ) {
+    $top: round( $top * $scale );
+    $right: round( $right * $scale );
+    $bottom: round( $bottom * $scale );
+    $left: round( $left * $scale );
+
+    /**
+     * This padding is to account for transparent space around a UI element's background image (shadow and texture), so
+     * it is straightforward to center text and identify the active area. The negative margins are used so that flex
+     * layouts apply spacing to this active area rather than the full image
+     */
+    margin-right: px( -$right );
+    margin-left: px( -$left );
+    padding: px( $top ) px( $right ) px( $bottom ) px( $left );
+}
+
+@mixin scale-margins ( $margins, $scale ) {
+    $margin-top: nth( $margins, 1 );
+    $margin-right: nth( $margins, 2 );
+    $margin-bottom: nth( $margins, 3 );
+    $margin-left: nth( $margins, 4 );
+
+    $margin-top: if( type-of( $margin-top ) == number, rem( round( $margin-top * $scale ) ), $margin-top );
+    $margin-right: if( type-of( $margin-right ) == number, rem( round( $margin-right * $scale ) ), $margin-right );
+    $margin-bottom: if( type-of( $margin-bottom ) == number, rem( round( $margin-bottom * $scale ) ), $margin-bottom );
+    $margin-left: if( type-of( $margin-left ) == number, rem( round( $margin-left * $scale ) ), $margin-left );
+
+    margin: $margin-top $margin-right $margin-bottom $margin-left;
+}
+
+@mixin breakpoint-scaled-margins ( $margins, $breakpoint-scales ) {
+    @each $breakpoint, $scale in $breakpoint-scales {
+        @include breakpoint( $breakpoint ) {
+            @include scale-margins( $margins, $scale );
+        }
+    }
+}
+
+@mixin breakpoint-scaled-image ( $relative-path, $breakpoint-scales, $margins: false ) {
+    display: block;
+
+    @include background-image( $relative-path );
+
+    @each $breakpoint, $scale in $breakpoint-scales {
+        @include breakpoint( $breakpoint ) {
+            @include background-image-dimensions( $relative-path, auto, auto, $scale );
+
+            @if $margins {
+                @include scale-margins( $margins, $scale );
+            }
+        }
+    }
+}
+
+@mixin image-text-replacement () {
+    text-indent: -9999px;
+    overflow: hidden;
+}
+
+@mixin image-title ( $name, $margins, $breakpoint-scales ) {
+    @include breakpoint-scaled-image( "titles/#{$name}.png", $breakpoint-scales, $margins );
+    @include image-text-replacement();
+}
+
+@mixin blueprint-text ( $name, $breakpoint-scales ) {
+    @include breakpoint-scaled-image( "blueprints/#{$name}.png", $breakpoint-scales );
+    @include image-text-replacement();
+}
+
+@mixin image-misc ( $name, $margins, $breakpoint-scales ) {
+    @include breakpoint-scaled-image( "misc/#{$name}.png", $breakpoint-scales, $margins );
+}

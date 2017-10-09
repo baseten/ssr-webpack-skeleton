@@ -1,0 +1,25 @@
+$font-weights: (
+    thin: $font-weight-thin,
+    ultra-light: $font-weight-ultra-light,
+    light: $font-weight-light,
+    regular: $font-weight-regular,
+    medium: $font-weight-medium,
+    semi-bold: $font-weight-semi-bold,
+    bold: $font-weight-bold,
+    ultra-bold: $font-weight-ultra-bold,
+    black: $font-weight-black
+);
+
+@each $name, $weight in $font-weights {
+    .font-weight-#{$name} {
+        font-weight: $weight !important;
+    }
+}
+
+.font-style-normal {
+    font-style: normal !important;
+}
+
+.font-style-italic {
+    font-style: italic !important;
+}

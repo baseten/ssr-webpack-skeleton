@@ -1,0 +1,120 @@
+.block {
+    display: block !important;
+}
+
+.inline-block {
+    display: inline-block !important;
+}
+
+.flex-center {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    & > * {
+        display: block;
+        flex: 0 1 auto; // IE fix
+    }
+}
+
+.flex-center-vertical {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+
+    & > * {
+        display: block;
+        flex: 0 0 auto; // IE fix
+    }
+}
+
+.flex-center-horizontal {
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    align-content: flex-start !important;
+
+    & > * {
+        display: block;
+        flex: 0 1 auto; // IE fix
+    }
+}
+
+.flex-row {
+    display: flex !important;
+    flex-direction: row !important;
+}
+
+.flex-column {
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.-justify-content-center {
+    justify-content: center !important;
+}
+
+.-justify-content-space-around {
+    justify-content: space-around !important;
+}
+
+.-justify-content-space-between {
+    justify-content: space-between !important;
+}
+
+.-justify-content-end {
+    justify-content: flex-end !important;
+}
+
+.-align-items-start {
+    align-items: flex-start !important;
+}
+
+.-align-items-center {
+    align-items: center !important;
+}
+
+.-align-items-end {
+    align-items: flex-end !important;
+}
+
+.-align-items-stretch {
+    align-items: stretch !important;
+}
+
+@each $size in $breakpoint-classes {
+    @include breakpoint( $size ) {
+        .-#{$size}-justify-content-center {
+            justify-content: center !important;
+        }
+
+        .-#{$size}-justify-content-space-around {
+            justify-content: space-around !important;
+        }
+
+        .-#{$size}-justify-content-space-between {
+            justify-content: space-between !important;
+        }
+
+        .-#{$size}-justify-content-end {
+            justify-content: flex-end !important;
+        }
+
+        .-#{$size}-align-items-start {
+            align-items: flex-start !important;
+        }
+
+        .-#{$size}-align-items-center {
+            align-items: center !important;
+        }
+
+        .-#{$size}-align-items-end {
+            align-items: flex-end !important;
+        }
+
+        .-#{$size}-align-items-stretch {
+            align-items: stretch !important;
+        }
+    }
+}

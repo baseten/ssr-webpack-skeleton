@@ -1,0 +1,27 @@
+$base-font-size: 16;
+$breakpoint-classes: (small medium large xlarge);
+$grid-gutters: (
+    small: 20,
+    xlarge: 30
+);
+
+/**
+ * 100 - Thin
+ * 200 - Extra Light, Ultra Light
+ * 300 - Light
+ * 400 - Normal, Book, Regular
+ * 500 - Medium
+ * 600 - Semi Bold, Demi Bold
+ * 700 - Bold
+ * 800 - Extra Bold, Ultra Bold
+ * 900 - Black, Heavy
+ */
+$font-weight-thin: 100;
+$font-weight-ultra-light: 200;
+$font-weight-light: 300;
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-semi-bold: 600;
+$font-weight-bold: 700;
+$font-weight-ultra-bold: 800;
+$font-weight-black: 900;

@@ -1,0 +1,49 @@
+@each $size in $breakpoint-classes {
+    $i: index( $breakpoint-classes, $size );
+    $len: length( $breakpoint-classes );
+    $expandClassName: if( $size == small, 'column-child-expander', $size + '-column-child-expander' );
+    $collapseClassName: if( $size == small, false, $size + '-column-child-collapse' );
+    $lastGutter: 0;
+
+    @for $i from $i through $len {
+        $gutterSize: nth( $breakpoint-classes, $i );
+        $gutter: map-get-matching-breakpoint( $grid-gutters, $gutterSize );
+
+        @if ( $gutter != $lastGutter ) {
+
+            @include breakpoint( $gutterSize ) {
+
+                .#{$expandClassName} {
+                    max-width: none;
+                    @include child-expander( $gutter, true );
+                    @include child-expander-margin( -$gutter / 2, -$gutter / 2 );
+                }
+
+                .#{$expandClassName}--double {
+                    max-width: none;
+                    @include child-expander( $gutter * 2, true );
+                    @include child-expander-margin( -$gutter, -$gutter );
+                }
+
+                .#{$expandClassName}--quadruple {
+                    max-width: none;
+                    @include child-expander( $gutter * 4, true );
+                    @include child-expander-margin( -$gutter * 2, -$gutter * 2 );
+                }
+            }
+
+            $lastGutter: $gutter;
+        }
+    }
+
+    @include breakpoint( $size ) {
+        @if $collapseClassName {
+            .#{$collapseClassName} {
+                max-width: 100%;
+                width: auto !important;
+                margin-left: 0;
+                margin-right: 0;
+            }
+        }
+    }
+}

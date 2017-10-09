@@ -1,0 +1,290 @@
+@function svg-get-artwork-offset ( $svgName, $width, $direction ) {
+    $characterData: map-get( $svgData, $svgName );
+    $characterViewBox: map-get( $characterData, view-box );
+    $characterBoundingBox: map-get( $characterData, bounding-box );
+    $characterSVGWidth: nth( $characterViewBox, 3 );
+    $characterSVGHeight: nth( $characterViewBox, 4 );
+    $characterArtworkX: nth( $characterBoundingBox, 1 );
+    $characterArtworkY: nth( $characterBoundingBox, 2 );
+    $characterArtworkWidth: nth( $characterBoundingBox, 3 );
+    $characterArtworkHeight: nth( $characterBoundingBox, 4 );
+    $characterArtworkX2: $characterSVGWidth - ( $characterArtworkX + $characterArtworkWidth );
+    $characterArtworkY2: $characterSVGHeight - ( $characterArtworkY + $characterArtworkHeight );
+
+    $scaleFactor: $width / $characterArtworkWidth;
+    $width: $characterSVGWidth * $scaleFactor;
+    $height: $characterSVGHeight * $scaleFactor;
+
+    @if $direction == top {
+        @return $scaleFactor * -$characterArtworkY;
+    }
+    @else if $direction == bottom {
+        @return $scaleFactor * -$characterArtworkY2;
+    }
+    @else if $direction == left {
+        @return $scaleFactor * -$characterArtworkX;
+    }
+    @else if $direction == right {
+        @return $scaleFactor * -$characterArtworkX2;
+    }
+}
+
+@function svg-get-viewbox-from-artwork-width ( $svgName, $width ) {
+    $characterData: map-get( $svgData, $svgName );
+    $characterViewBox: map-get( $characterData, view-box );
+    $characterBoundingBox: map-get( $characterData, bounding-box );
+    $characterSVGWidth: nth( $characterViewBox, 3 );
+    $characterSVGHeight: nth( $characterViewBox, 4 );
+    $characterArtworkWidth: nth( $characterBoundingBox, 3 );
+
+    $scaleFactor: $width / $characterArtworkWidth;
+    $width: $characterSVGWidth * $scaleFactor;
+    $height: $characterSVGHeight * $scaleFactor;
+
+    @return (
+        width: $width,
+        height: $height
+    );
+}
+
+@mixin svg-dimensions-fixed-artwork ( $svgName, $width, $centre: false ) {
+    $characterData: map-get( $svgData, $svgName );
+    $characterViewBox: map-get( $characterData, view-box );
+    $characterSVGWidth: nth( $characterViewBox, 3 );
+    $characterSVGHeight: nth( $characterViewBox, 4 );
+
+    $viewBox: svg-get-viewbox-from-artwork-width( $svgName, $width );
+    $width: map_get( $viewBox, width );
+    $height: map_get( $viewBox, height );
+
+    width: rem( $width );
+    height: rem( $height );
+
+    @if $centre {
+        $characterArtworkCentre: map-get( $characterData, artwork-centre );
+        $characterArtworkCentreX: nth( $characterArtworkCentre, 1 );
+        $characterArtworkCentreY: nth( $characterArtworkCentre, 2 );
+        $characterArtworkCentrePercX: $characterArtworkCentreX / $characterSVGWidth;
+        $characterArtworkCentrePercY: $characterArtworkCentreY / $characterSVGHeight;
+
+        $centreX: $width * $characterArtworkCentrePercX;
+        $centreX2: $width - $centreX;
+        $centreY: $height * $characterArtworkCentrePercY;
+        $centreY2: $height - $centreY;
+
+        margin: rem( -$centreY ) rem( -$centreX2 ) rem( -$centreY2 ) rem( -$centreX );
+        transform-origin: percentage( $characterArtworkCentrePercX ) percentage( $characterArtworkCentrePercY );
+    }
+}
+
+@mixin svg-dimensions-fluid-artwork ( $svgName, $left, $top, $width, $containerWidth, $containerHeight ) {
+    $characterData: map-get( $svgData, $svgName );
+    $characterViewBox: map-get( $characterData, view-box );
+    $characterBoundingBox: map-get( $characterData, bounding-box );
+    $characterSVGWidth: nth( $characterViewBox, 3 );
+    $characterSVGHeight: nth( $characterViewBox, 4 );
+    $characterArtworkWidth: nth( $characterBoundingBox, 3 );
+    $characterArtworkCentre: map-get( $characterData, artwork-centre );
+    $characterArtworkCentreX: nth( $characterArtworkCentre, 1 );
+    $characterArtworkCentreY: nth( $characterArtworkCentre, 2 );
+    $characterArtworkCentrePercX: $characterArtworkCentreX / $characterSVGWidth;
+    $characterArtworkCentrePercY: $characterArtworkCentreY / $characterSVGHeight;
+
+    $scaleFactor: $width / $characterArtworkWidth;
+    $width: $characterSVGWidth * $scaleFactor;
+    $height: $characterSVGHeight * $scaleFactor;
+
+    $centreX: $width * $characterArtworkCentrePercX;
+    $centreX2: $width - $centreX;
+    $centreY: $height * $characterArtworkCentrePercY;
+    $centreY2: $height - $centreY;
+
+    width: percentage( $width / $containerWidth );
+    height: percentage( $height / $containerHeight );
+    left: percentage( $left / $containerWidth );
+    top: percentage( $top / $containerHeight );
+
+    // vertical margin % are always based on parent element width
+    margin: percentage( -$centreY / $containerWidth ) 0 0 percentage( -$centreX / $containerWidth );
+    transform-origin: percentage( $characterArtworkCentrePercX ) percentage( $characterArtworkCentrePercY );
+}
+
+@mixin svg-dimensions-fixed-viewbox-manual ( $viewBoxWidth, $viewBoxHeight, $width, $centre: false ) {
+    $scaleFactor: $width / $viewBoxWidth;
+    $height: $viewBoxHeight * $scaleFactor;
+
+    width: rem( $width );
+    height: rem( $height );
+
+    @if $centre {
+        margin: rem( -$height * 0.5 ) rem( -$width * 0.5 );
+    }
+}
+
+@mixin svg-dimensions-fixed-viewbox ( $svgName, $width, $centre: false ) {
+    $characterData: map-get( $svgData, $svgName );
+    $characterViewBox: map-get( $characterData, view-box );
+    $characterBoundingBox: map-get( $characterData, bounding-box );
+    $characterSVGWidth: nth( $characterViewBox, 3 );
+    $characterSVGHeight: nth( $characterViewBox, 4 );
+
+    @include svg-dimensions-fixed-viewbox-manual( $characterSVGWidth, $characterSVGHeight, $width, $centre );
+}
+
+@function svg-get-viewbox-width ( $svgName ) {
+    $characterData: map-get( $svgData, $svgName );
+    $characterViewBox: map-get( $characterData, view-box );
+    @return nth( $characterViewBox, 3 );
+}
+
+@function svg-get-viewbox-width-for-height ( $svgName, $height ) {
+    $characterData: map-get( $svgData, $svgName );
+    $characterViewBox: map-get( $characterData, view-box );
+    $viewBoxWidth: nth( $characterViewBox, 3 );
+    $viewBoxHeight: nth( $characterViewBox, 4 );
+    $viewBoxAspect: $viewBoxWidth / $viewBoxHeight;
+    @return $height * $viewBoxAspect;
+}
+
+@function svg-get-viewbox-height ( $svgName ) {
+    $characterData: map-get( $svgData, $svgName );
+    $characterViewBox: map-get( $characterData, view-box );
+    @return nth( $characterViewBox, 4 );
+}
+
+@function svg-get-viewbox-height-for-width ( $svgName, $width ) {
+    $characterData: map-get( $svgData, $svgName );
+    $characterViewBox: map-get( $characterData, view-box );
+    $viewBoxWidth: nth( $characterViewBox, 3 );
+    $viewBoxHeight: nth( $characterViewBox, 4 );
+    $viewBoxAspect: $viewBoxWidth / $viewBoxHeight;
+    @return $width / $viewBoxAspect;
+}
+
+// use the svg-data to calculate artwork position and size. $largeLeft and $largeTop are the desired positions relative
+// to the largest container size to the centre of the artwork, $largeArtworkWidth is the desired width of the artwork
+// itself NOT the SVG container, $containerDimensionsMap provides the max width and height of the
+// container at various breakpoints
+@mixin svg-transform-fluid-artwork ( $svgName, $largeLeft, $largeTop, $largeArtworkWidth, $containerDimensionsMap ) {
+    $characterData: map-get( $svgData, $svgName );
+    $characterViewBox: map-get( $characterData, view-box );
+    $characterBoundingBox: map-get( $characterData, bounding-box );
+    $characterArtworkCentre: map-get( $characterData, artwork-centre );
+    $characterSVGWidth: nth( $characterViewBox, 3 );
+    $characterSVGHeight: nth( $characterViewBox, 4 );
+    $characterArtworkWidth: nth( $characterBoundingBox, 3 );
+    $characterArtworkCentreX: nth( $characterArtworkCentre, 1 );
+    $characterArtworkCentreY: nth( $characterArtworkCentre, 2 );
+    $characterArtworkCentrePercX: $characterArtworkCentreX / $characterSVGWidth;
+    $characterArtworkCentrePercY: $characterArtworkCentreY / $characterSVGHeight;
+
+    $smallContainerWidth: map-get( map-get( $containerDimensionsMap, small ), width );
+    $mediumContainerWidth: map-get( map-get( $containerDimensionsMap, medium ), width );
+    $largeContainerWidth: map-get( map-get( $containerDimensionsMap, large ), width );
+
+    // We need to calculate the dimensions of the outer SVG, to do that create a scale factor from the desired width and
+    // the artwork bounds, we can then apply that scale factor to the SVG viewbox to come up with the actual CSS dimensions
+    $smallScaleFactor: $smallContainerWidth / $largeContainerWidth;
+    $mediumScaleFactor: $mediumContainerWidth / $largeContainerWidth;
+
+    $largeWidthScaleFactor: $largeArtworkWidth / $characterArtworkWidth;
+    $smallWidthScaleFactor: $smallScaleFactor * $largeWidthScaleFactor;
+    $mediumWidthScaleFactor: $mediumScaleFactor * $largeWidthScaleFactor;
+
+    $smallPixelHeight: $characterSVGHeight * $smallWidthScaleFactor;
+    $mediumPixelHeight: $characterSVGHeight * $mediumWidthScaleFactor;
+    $largePixelWidth: $characterSVGWidth * $largeWidthScaleFactor;
+    $largePixelHeight: $characterSVGHeight * $largeWidthScaleFactor;
+
+    // Because the container width is fluid but the height isn't, we can get away with leaving the height of the SVG
+    // fixed in px based on the largest possible container size, this way it won't restrict the dimensions of the <use> tag
+    position: absolute;
+    width: percentage( $largePixelWidth / $largeContainerWidth );
+    height: rem( $smallPixelHeight );
+    left: percentage( $largeLeft / $largeContainerWidth );
+    top: rem( $largeTop * $smallScaleFactor );
+
+    $centreX: $largePixelWidth * $characterArtworkCentrePercX;
+    $centreX2: $largePixelWidth - $centreX;
+    $centreY: $smallPixelHeight * $characterArtworkCentrePercY;
+    $centreY2: $smallPixelHeight - $centreY;
+
+    // centre the object and the transform-origin based on the artwork centre
+    transform-origin: percentage( $characterArtworkCentrePercX ) percentage( $characterArtworkCentrePercY );
+    margin: rem( -$centreY ) percentage( -$centreX2 / $largeContainerWidth ) rem( -$centreY2 ) percentage( -$centreX / $largeContainerWidth );
+
+    @media #{$medium-up} {
+        $centreY: $mediumPixelHeight * $characterArtworkCentrePercY;
+        $centreY2: $mediumPixelHeight - $centreY;
+
+        top: rem( $largeTop * $mediumScaleFactor );
+        height: rem( $mediumPixelHeight );
+        margin-top: rem( -$centreY );
+        margin-bottom: rem( -$centreY2 );
+    }
+
+    @media #{$large-up} {
+        $centreY: $largePixelHeight * $characterArtworkCentrePercY;
+        $centreY2: $largePixelHeight - $centreY;
+
+        top: rem( $largeTop );
+        height: rem( $largePixelHeight );
+        margin-top: rem( -$centreY );
+        margin-bottom: rem( -$centreY2 );
+    }
+}
+
+@mixin svg-transform-fluid-viewbox-manual ( $viewBoxWidth, $viewBoxHeight, $largeLeft, $largeTop, $largeViewBoxWidth, $containerDimensionsMap ) {
+    $smallContainerWidth: map-get( map-get( $containerDimensionsMap, small ), width );
+    $mediumContainerWidth: map-get( map-get( $containerDimensionsMap, medium ), width );
+    $largeContainerWidth: map-get( map-get( $containerDimensionsMap, large ), width );
+
+    // We need to calculate the dimensions of the outer SVG, to do that create a scale factor from the desired width and
+    // the artwork bounds, we can then apply that scale factor to the SVG viewbox to come up with the actual CSS dimensions
+    $smallScaleFactor: $smallContainerWidth / $largeContainerWidth;
+    $mediumScaleFactor: $mediumContainerWidth / $largeContainerWidth;
+
+    $largeWidthScaleFactor: $largeViewBoxWidth / $viewBoxWidth;
+    $smallWidthScaleFactor: $smallScaleFactor * $largeWidthScaleFactor;
+    $mediumWidthScaleFactor: $mediumScaleFactor * $largeWidthScaleFactor;
+
+    $smallPixelHeight: $viewBoxHeight * $smallWidthScaleFactor;
+    $mediumPixelHeight: $viewBoxHeight * $mediumWidthScaleFactor;
+    $largePixelHeight: $viewBoxHeight * $largeWidthScaleFactor;
+    $largePixelWidth: $viewBoxWidth * $largeWidthScaleFactor;
+
+    // Because the container width is fluid but the height isn't, we can get away with leaving the height of the SVG
+    // fixed in px based on the largest possible container size, this way it won't restrict the dimensions of the <use> tag
+    width: percentage( $largePixelWidth / $largeContainerWidth );
+    height: rem( $smallPixelHeight );
+    left: percentage( $largeLeft / $largeContainerWidth );
+    top: rem( $largeTop * $smallScaleFactor );
+
+    margin: rem( -$smallPixelHeight * 0.5 ) percentage( -$largePixelWidth * 0.5 / $largeContainerWidth );
+
+    @media #{$medium-up} {
+        top: rem( $largeTop * $mediumScaleFactor );
+        height: rem( $mediumPixelHeight );
+        margin-top: rem( -$mediumPixelHeight * 0.5 );
+        margin-bottom: rem( -$mediumPixelHeight * 0.5 );
+    }
+
+    @media #{$large-up} {
+        top: rem( $largeTop );
+        height: rem( $largePixelHeight );
+        margin-top: rem( -$largePixelHeight * 0.5 );
+        margin-bottom: rem( -$largePixelHeight * 0.5 );
+    }
+}
+
+// use the svg-data to calculate artwork position and size. $largeLeft and $largeTop are the desired positions relative
+// to the largest container size to the centre of the artwork, $largeViewBoxWidth is the desired width of the SVG itself,
+// $containerDimensionsMap provides the max width and height of the container at various breakpoints
+@mixin svg-transform-fluid-viewbox ( $svgName, $largeLeft, $largeTop, $largeViewBoxWidth, $containerDimensionsMap ) {
+    $characterData: map-get( $svgData, $svgName );
+    $characterViewBox: map-get( $characterData, view-box );
+    $characterSVGWidth: nth( $characterViewBox, 3 );
+    $characterSVGHeight: nth( $characterViewBox, 4 );
+
+    @include svg-transform-fluid-viewbox-manual( $characterSVGWidth, $characterSVGHeight, $largeLeft, $largeTop, $largeViewBoxWidth, $containerDimensionsMap );
+}

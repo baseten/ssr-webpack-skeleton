@@ -1,0 +1,225 @@
+// _decimal.scss | MIT License | gist.github.com/terkel/4373420
+
+// Round a number to specified digits.
+//
+// @param  {Number} $number A number to round
+// @param  {Number} [$digits:0] Digits to output
+// @param  {String} [$mode:round] (round|ceil|floor) How to round a number
+// @return {Number} A rounded number
+// @example
+//     decimal-round(0.333)    => 0
+//     decimal-round(0.333, 1) => 0.3
+//     decimal-round(0.333, 2) => 0.33
+//     decimal-round(0.666)    => 1
+//     decimal-round(0.666, 1) => 0.7
+//     decimal-round(0.666, 2) => 0.67
+//
+@function decimal-round ($number, $digits: 0, $mode: round) {
+    $n: 1;
+    // $number must be a number
+    @if type-of($number) != number {
+        @warn '#{$number} is not a number.';
+        @return $number;
+    }
+    // $digits must be a unitless number
+    @if type-of($digits) != number {
+        @warn '#{$digits} is not a number.';
+        @return $number;
+    } @else if not unitless($digits) {
+        @warn '#{$digits} has a unit.';
+        @return $number;
+    }
+    @for $i from 1 through $digits {
+        $n: $n * 10;
+    }
+    @if $mode == round {
+        @return round($number * $n) / $n;
+    } @else if $mode == ceil {
+        @return ceil($number * $n) / $n;
+    } @else if $mode == floor {
+        @return floor($number * $n) / $n;
+    } @else {
+        @warn '#{$mode} is undefined keyword.';
+        @return $number;
+    }
+}
+
+// Ceil a number to specified digits.
+//
+// @param  {Number} $number A number to round
+// @param  {Number} [$digits:0] Digits to output
+// @return {Number} A ceiled number
+// @example
+//     decimal-ceil(0.333)    => 1
+//     decimal-ceil(0.333, 1) => 0.4
+//     decimal-ceil(0.333, 2) => 0.34
+//     decimal-ceil(0.666)    => 1
+//     decimal-ceil(0.666, 1) => 0.7
+//     decimal-ceil(0.666, 2) => 0.67
+//
+@function decimal-ceil ($number, $digits: 0) {
+    @return decimal-round($number, $digits, ceil);
+}
+
+// Floor a number to specified digits.
+//
+// @param  {Number} $number A number to round
+// @param  {Number} [$digits:0] Digits to output
+// @return {Number} A floored number
+// @example
+//     decimal-floor(0.333)    => 0
+//     decimal-floor(0.333, 1) => 0.3
+//     decimal-floor(0.333, 2) => 0.33
+//     decimal-floor(0.666)    => 0
+//     decimal-floor(0.666, 1) => 0.6
+//     decimal-floor(0.666, 2) => 0.66
+//
+@function decimal-floor ($number, $digits: 0) {
+    @return decimal-round($number, $digits, floor);
+}
+
+@function tintColor ($color, $amount) {
+    @return mix($color, #ffffff, $amount);
+}
+
+@function is-number ( $value ) {
+    @return type-of( $value ) == number;
+}
+
+@function rem ( $pxSize, $base: $base-font-size ) {
+    @return decimal-ceil( $pxSize / $base, 4 ) * 1rem;
+}
+
+@function rem-or-existing-unit ( $value, $base: $base-font-size ) {
+    // accounts for calc
+    @if type-of( $value ) != number {
+        @return $value;
+    }
+
+    @if unitless( $value ) {
+        @return rem( $value, $base );
+    }
+    @else {
+        @return $value;
+    }
+}
+
+@function px ( $unitlessPxSize ) {
+    @return $unitlessPxSize * 1px;
+}
+
+@function px-or-existing-unit ( $value ) {
+    // in case of auto, etc.
+    @if type-of( $value ) == string {
+        @return $value;
+    }
+
+    @if unitless( $value ) {
+        @return px( $value );
+    }
+    @else {
+        @return $value;
+    }
+}
+
+@function scale-value( $value, $scale ) {
+    @return round( $value * $scale );
+}
+
+@function em ( $pxSize, $base: $base-font-size ) {
+    @return decimal-ceil( $pxSize / $base, 4 ) * 1em;
+}
+
+@function lower-bound($range){
+    @if length($range) <= 0 {
+        @return 0;
+    }
+    @return nth($range,1);
+}
+
+@function upper-bound($range) {
+    @if length($range) < 2 {
+        @return 999999999999;
+    }
+    @return nth($range, 2);
+}
+
+@function strip-unit($number) {
+    @return $number / ($number * 0 + 1);
+}
+
+// http://stackoverflow.com/questions/32376461/how-to-split-a-string-into-two-lists-of-numbers-in-sass
+@function str-split($string, $separator) {
+    // empty array/list
+    $split-arr: ();
+    // first index of separator in string
+    $index : str-index($string, $separator);
+    // loop through string
+    @while $index != null {
+        // get the substring from the first character to the separator
+        $item: str-slice($string, 1, $index - 1);
+        // push item to array
+        $split-arr: append($split-arr, $item);
+        // remove item and separator from string
+        $string: str-slice($string, $index + 1);
+        // find new index of separator
+        $index : str-index($string, $separator);
+    }
+    // add the remaining string to list (the last item)
+    $split-arr: append($split-arr, $string);
+
+    @return $split-arr;
+}
+
+// useful for calculating width of columns, mainly for other calculations not to set the columns themselves
+@function column-width ( $rowWidth, $numColumns, $columnPadding, $gutterPadding ) {
+    $totalPadding: $columnPadding * $numColumns * 2 + $gutterPadding * 2;
+    @return ( $rowWidth - $totalPadding ) / $numColumns;
+}
+
+@function line-height ( $leading, $font-size ) {
+    @return decimal-ceil( $leading / $font-size, 4 );
+}
+
+/// Casts a map into a list.
+/// @link http://hugogiraudel.com/2014/04/28/casting-map-into-list/
+///
+/// @param {Map} $map - Map to pull a value from.
+///
+/// @returns {List} Depending on the flag, returns either $keys or $values or both.
+@function map-to-list($map, $keep: 'both') {
+    $keep: if(index('keys' 'values', $keep), $keep, 'both');
+
+    @if type-of($map) == 'map' {
+        $keys: ();
+        $values: ();
+
+        @each $key, $val in $map {
+            $keys: append($keys, $key);
+            $values: append($values, $val);
+        }
+
+        @if $keep == 'keys' {
+            @return $keys;
+        }
+        @else if $keep == 'values' {
+            @return $values;
+        }
+        @else {
+            @return zip($keys, $values);
+        }
+    }
+
+    @return if(type-of($map) != 'list', ($value,), $map);
+
+}
+
+@function -zf-bp-to-em($value) {
+    // Pixel and unitless values are converted to rems
+    @if unit($value) == 'px' or unitless($value) {
+        $value: rem($value, $base: 16px);
+    }
+
+    // Then the value is converted to ems
+    @return strip-unit($value) * 1em;
+}

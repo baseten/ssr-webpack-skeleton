@@ -1,0 +1,39 @@
+{
+  "extends": "standard",
+  "env": {
+    "browser": true,
+    "es6": true
+  },
+  "parser": "babel-eslint",
+  "rules": {
+    "padded-blocks": 0,
+    "spaced-comment": 0,
+    "indent": [ "error", 4, {
+      "SwitchCase": 1
+    } ],
+    "semi": [ "error", "always" ],
+    "array-bracket-spacing": [ "error", "always" ],
+    "space-in-parens": [ "error", "always" ],
+    "brace-style": [ "error", "stroustrup" ],
+    "template-curly-spacing": [ "error", "always" ],
+    "quotes": [ "error", "single", {
+      "avoidEscape": true,
+      "allowTemplateLiterals": true
+    } ]
+  },
+  "globals": {
+    "Modernizr": false,
+    "google": false,
+    "requestAnimationFrame": false,
+    "performance": false,
+    "Power0": false,
+    "Power1": false,
+    "Power2": false,
+    "Power3": false,
+    "Power4": false,
+    "Back": false,
+    "Sine": false,
+    "TimelineLite": false,
+    "DESKTOP_MODE": false
+  }
+}
